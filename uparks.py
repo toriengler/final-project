@@ -49,7 +49,7 @@ class HersheyPark():
             line= "the park is closed"
         else:
             line='the park is open at {} and closed at {}'.format(self.opentime, self.closedtime)
-        return "{} : {}, {}, {}, {}, On {}, {}: {}".format(self.parkname, self.parkaddress, self.parkcity, self.parkstate, self.parkzip, self.day, self.date, line)
+        return "{} : {},{}, {} {}, On {}, {}: {}".format(self.parkname, self.parkaddress, self.parkcity, self.parkstate, self.parkzip, self.day, self.date, line)
 
 class HersheyRides():
     def __init__(self, RideName= 'No Name', RideDescription='No Desc', HeightMin='No Min', RideRating='No Rating', ParkRegion='Region Unknown', RatingId='No Rating', RatingDescription='No description', Star=False):
@@ -97,7 +97,7 @@ def get_park_info():
     count=0
     for sched in dayntime:
         try:
-            dates=sched.find('span', class_='day').text.split(', ')[1]
+            dates=sched.find('span', class_='day').text.split(', ')[1].split(':')[0]
         except:
             dates=None
         try:
@@ -111,7 +111,7 @@ def get_park_info():
         except:
             hour=None
 
-        days_n_times[(day, dates.strip())]=hour.strip()
+        days_n_times[(day, dates)]=hour.strip()
         for key in days_n_times:
             park_hours=days_n_times[key]
             # print(park_hours)
@@ -124,7 +124,7 @@ def get_park_info():
 
         count+=1
         if count<=31:
-            parkname='Hershey'
+            parkname='Hershey Park'
         else:
             parkname='ZooAmerica'
 
