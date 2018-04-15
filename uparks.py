@@ -307,6 +307,112 @@ def insert_info():
         cur.execute(statement, insertion)
     conn.commit()
 
+def process_query(response):
+    commands=[]
+    if response=='':
+        print('Oops, nothing was entered. Please try again.')
+        user_query()
+
+    if response=='Address':
+        address=process_address(response)
+        commands.append(address)
+
+    # if response.split()[0]=='Hours':
+    #     #hours=process_hours(response)
+    #     # for h in hours:
+    #         # commands.append(h)
+    #
+    # if response.split()[0]=='Rides':
+    #     #rides=process_rides(response)
+    #     # for r in rides:
+    #         # commands.append(r)
+    #
+    # if response.split()[0]=="Ratings":
+        # ratings=process_ratings(response)
+        #for rat in ratings:
+            #commands.append(rat)
+    return commands
+
+def process_address(response):
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print ("Sorry. There was an error.")
+
+    address=get_park_info()[0]
+    resp= "{} is located at:\n{}\n{}, {} {}".format(address.parkname, address.parkaddress,  address.parkcity, address.parkstate, address.parkzip)
+    print(resp)
+
+def process_hours(response):
+    hours_results = []
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print ("Sorry. There was an error.")
+#
+    statement="SELECT Weekday, Dates, OpenTime, ClosedTime, ParkName FROM Hours"
+    if response.__contains__('parkname'):
+        response=response.split()[1]
+        resp1 = response.split("=")[-1]
+        #launch html graph list of all hours for hours
+        statement+=' WHERE ParkName='+ '"'+resp1 + '"'
+    elif response.__contains__('weekday'):
+        response=response.split()[1]
+        resp1 = response.split("=")[-1]
+        statement+=' WHERE Weekday='+ '"'+resp1 + '"'
+    elif response.__contains__('date'):
+        resp1 = response.split("=")[1]
+        statement+=' WHERE Dates='+ '"'+ str(resp1) + '"'
+    cur.execute(statement)
+    conn.commit()
+    for row in cur:
+        hours_results.append(row)
+    conn.close()
+    return hours_results
+
+def process_rides(response):
+    rides_results = []
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print ("Sorry. There was an error.")
+
+    statement="SELECT * FROM Rides"
+
+    if response.__contains__('names'):
+        statement='SELECT RideName FROM Rides'
+    # if response.__contains__('all'):
+        #html/ flask
+    
+
+#def process_ratings(response):
+
+def user_query():
+    #help=load_help_text()
+    command=input('What information are you looking for? ')
+    while command!='exit':
+        command=input('What other information are you looking for? ')
+        data=process_query(command)
+        # columnwidth = 15
+        # if response.split(' ', 1)[0] in ['Hours']:
+        #     if data:
+        #         for row in data:
+        #             for value in row:
+        #                 if type(value) == float:
+        #                     value=round(value, 1)
+        #                 if len(str(value)) > columnwidth:
+        #                     value = str(value)[:columnwidth-3] + "..."
+        #                     print (str(value).ljust(columnwidth), end = '   ')
+        #                 print ("\n")
+        # else:
+            # print ("Command is not recognized: " + response)
+
+
 if __name__ == '__main__':
     init_db()
     insert_info()
+    print("Welcome to Hershey Park's Visitor Information: All Access! \nLooking to book a trip to the sweetest park in PA? Look no further.")
+    user_query()

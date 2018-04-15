@@ -27,6 +27,10 @@ class TestHoursSearch(unittest.TestCase):
         self.assertEqual(ride1.heights, 'Under 36"' )
         self.assertEqual(ride1.parkregion, "Founder's Way")
         self.assertEqual(ride1.star, False)
+        rides=get_ride_info()
+        self.assertEqual(len(rides), 57)
+        heights=get_ride_info(HeightMin='Under 36"*')
+        self.assertTrue(heights.star, True)
 
 if __name__ == '__main__':
     unittest.main()
