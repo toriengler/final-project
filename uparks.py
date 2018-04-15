@@ -1,8 +1,14 @@
 from bs4 import BeautifulSoup
 import requests
+import math
 import json
 import sqlite3
-from urllib.request import urlopen
+import plotly as py
+from plotly.offline import plot
+import plotly.tools as plotly_tools
+import plotly.graph_objs as go
+py.tools.set_credentials_file(username='toriengler', api_key='L4I6cjxjCKotz48OKidA')
+import pandas as pd
 
 CACHE_FNAME = 'parks_info.json'
 try:
@@ -10,8 +16,6 @@ try:
     cache_contents = cache_file.read()
     CACHE_DICTION = json.loads(cache_contents)
     cache_file.close()
-
-# if there was no file, no worries. There will be soon!
 except:
     CACHE_DICTION = {}
 
@@ -138,7 +142,6 @@ def get_soup():
     soup= BeautifulSoup(ride_site, 'html.parser')
     return soup
 
-# get ride names and return it
 def get_ride_names():
     soup = get_soup()
     ride_info= soup.find('ul', id='rides-list')
@@ -344,6 +347,28 @@ def process_address(response):
     resp= "{} is located at:\n{}\n{}, {} {}".format(address.parkname, address.parkaddress,  address.parkcity, address.parkstate, address.parkzip)
     print(resp)
 
+def chart_hours(response):
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print ("Sorry. There was an error.")
+
+    statement="SELECT ParkName, Weekday, Dates, OpenTime, ClosedTime FROM Hours"
+    statement+=" WHERE ParkName="+ '"'+ response + '"'
+    df = pd.read_sql_query(statement, conn)
+
+    trace = go.Table(header=dict(values=df.columns, fill = dict(color='#C2D4FF'), align = ['left'] * 5),
+    cells=dict(values=[df.ParkName, df.Weekday, df.Dates, df.OpenTime, df.ClosedTime],
+               fill = dict(color='#F5F8FF'),
+               align = ['left'] * 5))
+    data = [trace]
+    layout=go.Layout(dict(title=df.ParkName +'Dates and Hours'))
+    fig=go.Figure(dict(data=data,layout=layout))
+    plot(fig, filename = 'hours_table.html')
+
+# chart_hours('Hershey Park')
+
 def process_hours(response):
     hours_results = []
     try:
@@ -356,8 +381,7 @@ def process_hours(response):
     if response.__contains__('parkname'):
         response=response.split()[1]
         resp1 = response.split("=")[-1]
-        #launch html graph list of all hours for hours
-        statement+=' WHERE ParkName='+ '"'+resp1 + '"'
+        chart_hours(resp1)
     elif response.__contains__('weekday'):
         response=response.split()[1]
         resp1 = response.split("=")[-1]
@@ -372,6 +396,86 @@ def process_hours(response):
     conn.close()
     return hours_results
 
+def rating_gauge(response):
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print ("Sorry. There was an error.")
+    statement="SELECT Rides.RideRatingID FROM Rides JOIN Ratings ON Ratings.Id=Rides.RideRatingID WHERE Rides.RideName="+ response + '"'
+    cur.execute(statement)
+    for id in cur:
+        print(id)
+    h = 0.24
+    k = 0.5
+    r = 0.15
+    theta = int(response) * 180 / 300
+    theta = theta * math.pi / 180
+    x = h + r*math.cos(theta)
+    y = k + r*math.sin(theta)
+    path = 'M 0.235 0.5 L ' + str(x) + ' ' + str(y) + ' L 0.245 0.5 Z'
+    base_chart = {
+    "values": [40, 10, 10, 10, 10, 10],
+    "labels": ["-", "1", "2", "3", "4", "5"],
+    "domain": {"x": [0, .48]},
+    "marker": {
+        "colors": [
+            'rgb(255, 255, 255)',
+            'rgb(255, 255, 255)',
+            'rgb(255, 255, 255)',
+            'rgb(255, 255, 255)',
+            'rgb(255, 255, 255)'],
+        "line": {
+            "width": 1}},
+    "name": "Gauge",
+    "hole": .4,
+    "type": "pie",
+    "direction": "clockwise",
+    "rotation": 90,
+    "showlegend": False,
+    "hoverinfo": "none",
+    "textinfo": "label",
+    "textposition": "outside"}
+    meter_chart = {
+    "values": [50, 10,10,10,10,10],
+    "labels": [' ','Childrens Ride', 'Mild Thrill Ride', 'Moderate Thrill Ride', 'High Thrill Ride', 'Aggressive Thrill Ride'],
+    "marker": {'colors': [
+            'rgb(255, 255, 255)',
+            'rgb(232,226,202)',
+            'rgb(226,210,172)',
+            'rgb(223,189,139)',
+            'rgb(226,126,64)']},
+                "domain": {"x": [0, 0.48]},
+                "name": "Gauge",
+                "hole": .3,
+                "type": "pie",
+                "direction": "clockwise",
+                "rotation":90,
+                "showlegend": False,
+                "textinfo": "label",
+                "textposition": "inside",
+                "hoverinfo": "none"}
+    layout={'xaxis': {'showticklabels': False,'autotick': False,'showgrid': False,'zeroline': False,},'yaxis': {'showticklabels': False, 'autotick': False,'showgrid': False,'zeroline': False,},
+    'shapes': [{'type': 'path',
+            'path': path,
+            'fillcolor': 'rgba(44, 160, 101, 0.5)',
+            'line': {
+                'width': 0.5},
+            'xref': 'paper',
+            'yref': 'paper'}],
+        'annotations': [{'xref': 'paper',
+            'yref': 'paper',
+            'x': 0.23,
+            'y': 0.45,
+            'text': '50',
+            'showarrow': False}]}
+    base_chart['marker']['line']['width'] = 0
+
+    fig = {"data": [base_chart, meter_chart],
+       "layout": layout}
+    plot(fig, filename='gauge-meter-chart.html')
+# rating_gauge('Balloon Flite')
+
 def process_rides(response):
     rides_results = []
     try:
@@ -380,19 +484,26 @@ def process_rides(response):
     except:
         print ("Sorry. There was an error.")
 
-    statement="SELECT *, Ratings.RatingName, Ratings.RatingDescription FROM Rides JOIN Ratings ON Ratings.Id=Rides.RatingId"
+    statement="SELECT *, Ratings.RatingName, Ratings.RatingDescription FROM Rides JOIN Ratings ON Ratings.Id=Rides.RideRatingId"
 
     if response.__contains__('names'):
-        statement='SELECT RideName FROM Rides'
-    # if response.__contains__('all'):
-    #     html/ flask
+        statement='SELECT Id, RideName FROM Rides'
+    if response.__contains__('number'):
+        resp1=response.split[-1]
+        statement+=' WHERE Ride.Id=' + resp1
     if response.__contains__('RatingId'):
         response=response.split()[1]
         resp1 = response.split("=")[-1]
-        statement+=' WHERE RatingId='+ '"'+resp1 + '"'
+        statement+=' WHERE RideRatingID='+ '"'+resp1 + '"'
     if response.__contains__('RatingName'):
         resp1 = response.split("=")[1]
-        statement+=' WHERE RatingId='+ '"'+resp1 + '"'
+        statement+=' WHERE RideRatingId='+ '"'+resp1 + '"'
+    if response.__contains__('parkregion'):
+        resp1 = response.split("=")[1]
+        statement+=' WHERE ParkRegion='+ '"'+resp1 + '"'
+    if response.__contains__('heightmin='):
+        resp1 = response.split("=")[1]
+        statement+=' WHERE HeightMin='+ '"'+resp1 + '"'
 
     cur.execute(statement)
     conn.commit()
@@ -402,20 +513,26 @@ def process_rides(response):
     return rides_results
 
 def process_ratings(response):
-    ratings_results = []
     try:
         conn = sqlite3.connect(DBNAME)
         cur = conn.cursor()
     except:
         print ("Sorry. There was an error.")
 
-    statement='SELECT * FROM Ratings'
-    cur.execute(statement)
-    conn.commit()
-    for row in cur:
-        ratings_results.append(row)
-    conn.close()
-    return ratings_results
+    if response.__contains__('ride'):
+        resp1 = response.split("=")[-1]
+        rating_gauge(resp1)
+    else:
+        statement='SELECT * FROM Ratings'
+        df = pd.read_sql_query(statement, conn)
+
+        trace = go.Table(header=dict(values=df.columns, fill = dict(color='#C4D5FF'), align = ['left'] * 5),
+        cells=dict(values=[df.Id, df.RatingName, df.RatingDescription],
+               fill = dict(color='#F9F8FF'),
+               align = ['left'] * 5))
+        data = [trace]
+        plot(data, filename = 'ratings_table.html')
+# process_ratings('Ratings')
 
 def load_help_text():
     with open('help.txt') as f:
@@ -450,7 +567,7 @@ def user_query():
             break
 
 if __name__ == '__main__':
-    init_db()
-    insert_info()
-    print("Welcome to Hershey Park's Visitor Information: All Access! \nLooking to book a trip to the sweetest park in PA? Look no further.")
-    user_query()
+    # init_db()
+    # insert_info()
+    # print("Welcome to Hershey Park's Visitor Information: All Access! \nLooking to book a trip to the sweetest park in PA? Look no further.")
+    # user_query()
