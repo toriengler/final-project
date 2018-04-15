@@ -317,20 +317,20 @@ def process_query(response):
         address=process_address(response)
         commands.append(address)
 
-    # if response.split()[0]=='Hours':
-    #     #hours=process_hours(response)
-    #     # for h in hours:
-    #         # commands.append(h)
-    #
-    # if response.split()[0]=='Rides':
-    #     #rides=process_rides(response)
-    #     # for r in rides:
-    #         # commands.append(r)
-    #
-    # if response.split()[0]=="Ratings":
-        # ratings=process_ratings(response)
-        #for rat in ratings:
-            #commands.append(rat)
+    if response.split()[0]=='Hours':
+        hours=process_hours(response)
+        for h in hours:
+            commands.append(h)
+
+    if response.split()[0]=='Rides':
+        rides=process_rides(response)
+        for r in rides:
+            commands.append(r)
+
+    if response.split()[0]=="Ratings":
+        ratings=process_ratings(response)
+        for rat in ratings:
+            commands.append(rat)
     return commands
 
 def process_address(response):
@@ -380,36 +380,74 @@ def process_rides(response):
     except:
         print ("Sorry. There was an error.")
 
-    statement="SELECT * FROM Rides"
+    statement="SELECT *, Ratings.RatingName, Ratings.RatingDescription FROM Rides JOIN Ratings ON Ratings.Id=Rides.RatingId"
 
     if response.__contains__('names'):
         statement='SELECT RideName FROM Rides'
     # if response.__contains__('all'):
-        #html/ flask
-    
+    #     html/ flask
+    if response.__contains__('RatingId'):
+        response=response.split()[1]
+        resp1 = response.split("=")[-1]
+        statement+=' WHERE RatingId='+ '"'+resp1 + '"'
+    if response.__contains__('RatingName'):
+        resp1 = response.split("=")[1]
+        statement+=' WHERE RatingId='+ '"'+resp1 + '"'
 
-#def process_ratings(response):
+    cur.execute(statement)
+    conn.commit()
+    for row in cur:
+        rides_results.append(row)
+    conn.close()
+    return rides_results
+
+def process_ratings(response):
+    ratings_results = []
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print ("Sorry. There was an error.")
+
+    statement='SELECT * FROM Ratings'
+    cur.execute(statement)
+    conn.commit()
+    for row in cur:
+        ratings_results.append(row)
+    conn.close()
+    return ratings_results
+
+def load_help_text():
+    with open('help.txt') as f:
+        return f.read()
 
 def user_query():
-    #help=load_help_text()
+    help=load_help_text()
     command=input('What information are you looking for? ')
     while command!='exit':
         command=input('What other information are you looking for? ')
         data=process_query(command)
-        # columnwidth = 15
-        # if response.split(' ', 1)[0] in ['Hours']:
-        #     if data:
-        #         for row in data:
-        #             for value in row:
-        #                 if type(value) == float:
-        #                     value=round(value, 1)
-        #                 if len(str(value)) > columnwidth:
-        #                     value = str(value)[:columnwidth-3] + "..."
-        #                     print (str(value).ljust(columnwidth), end = '   ')
-        #                 print ("\n")
-        # else:
-            # print ("Command is not recognized: " + response)
+        columnwidth = 15
+        if response.split(' ', 1)[0] in ['Hours', 'Rides', 'Ratings']:
+            if data:
+                for row in data:
+                    for value in row:
+                        if type(value) == float:
+                            value=round(value, 1)
+                        if len(str(value)) > columnwidth:
+                            value = str(value)[:columnwidth-3] + "..."
+                            print (str(value).ljust(columnwidth), end = '   ')
+                        print ("\n")
+        else:
+            print ("Command is not recognized: " + response)
 
+        if response == "help":
+            print (help_text)
+            continue
+
+        if response == "exit":
+            print ("Enjoy your trip!")
+            break
 
 if __name__ == '__main__':
     init_db()

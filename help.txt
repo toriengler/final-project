@@ -1,0 +1,23 @@
+Commands available:
+
+Hours: Lists springtime hours at which the specified parks are open.
+Possible entries:
+  * parkname= |<ZooAmerica> or <Hershey Park>|
+  Description: This command will give you all hours throughout March and April at which the specified park is available.
+  * weekday=|<weekday name>|
+  Description: This command will give you all hours at which the parks are open on the specified weekday.
+  * date=|<date>|
+  Description: This command will give you all hours at which both parks are open on the specified date.
+
+Ratings: Lists all of the rating information for rides.
+
+Rides: Lists all Hershey rides according to the specified parameters.
+Possible entries:
+  * names
+  Description: This command will return a list of all of the rides.
+  * all??
+  Description:??
+  * RatingId=|<number 1-5>|
+  Description: This command will return a list of rides based on the specified rating level/intensity number of the ride.
+  * RatingName=|<rating name>|
+  Description: This command will return a list of rides based on the specified rating name of this ride.
