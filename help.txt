@@ -22,7 +22,7 @@ Possible entries:
   Description: This command will return a list of all of the rides.
   * number=|<ride ID number>| Number will be next to the ride when you use the names command.
   Description:This will return more information about the specified ride.
-  * RatingName=|<rating name>|
+  * ratingname=|<rating name>|
   Description: This command will return a list of rides based on the specified rating name of this ride.
   *parkregion=|<park region name>| Founder's Way, Kissing Tower Hill, Midway America, or Pioneer Frontier
   Description: This command will return a list of rides based on the specified park region of this ride.

@@ -175,7 +175,7 @@ def get_ride_info():
         try:
             name=soup.find('h1', class_='content-h1').text
         except:
-            print('No ride name')
+            name=None
         ride_info= soup.find('div', class_='rides-detail-sec1 rides-detail-sec')
         if ride_info!=None:
             try:
@@ -216,6 +216,7 @@ def get_ride_info():
         ride_instance=HersheyRides(RideName= name, RideDescription=ride_desc, HeightMin=shortest_height, RideRating=ride_rating, ParkRegion=park_region, RatingId=rating_id, RatingDescription=rating_description, Star=star)
         ride_stuff.append(ride_instance)
     return ride_stuff
+# get_ride_info()
 
 DBNAME='HersheyPark.db'
 
@@ -376,80 +377,94 @@ def rating_gauge(response):
         cur = conn.cursor()
     except:
         print ("Sorry. There was an error.")
-    statement="SELECT Rides.RideRatingID FROM Rides JOIN Ratings ON Ratings.Id=Rides.RideRatingID WHERE Rides.RideName="+ response + '"'
+    statement="SELECT Rides.RideRatingID FROM Rides JOIN Ratings ON Ratings.Id=Rides.RideRatingID WHERE Rides.RideName="+ '"'+response + '"'
     cur.execute(statement)
-    for id in cur:
-        print(id)
-    h = 0.24
-    k = 0.5
-    r = 0.15
-    theta = int(response) * 180 / 300
-    theta = theta * math.pi / 180
-    x = h + r*math.cos(theta)
-    y = k + r*math.sin(theta)
-    path = 'M 0.235 0.5 L ' + str(x) + ' ' + str(y) + ' L 0.245 0.5 Z'
-    base_chart = {
-    "values": [40, 10, 10, 10, 10, 10],
-    "labels": ["-", "1", "2", "3", "4", "5"],
-    "domain": {"x": [0, .48]},
-    "marker": {
-        "colors": [
-            'rgb(255, 255, 255)',
-            'rgb(255, 255, 255)',
-            'rgb(255, 255, 255)',
-            'rgb(255, 255, 255)',
-            'rgb(255, 255, 255)'],
-        "line": {
-            "width": 1}},
-    "name": "Gauge",
-    "hole": .4,
-    "type": "pie",
-    "direction": "clockwise",
-    "rotation": 90,
-    "showlegend": False,
-    "hoverinfo": "none",
-    "textinfo": "label",
-    "textposition": "outside"}
-    meter_chart = {
-    "values": [50, 10,10,10,10,10],
-    "labels": [' ','Childrens Ride', 'Mild Thrill Ride', 'Moderate Thrill Ride', 'High Thrill Ride', 'Aggressive Thrill Ride'],
-    "marker": {'colors': [
-            'rgb(255, 255, 255)',
-            'rgb(232,226,202)',
-            'rgb(226,210,172)',
-            'rgb(223,189,139)',
-            'rgb(226,126,64)']},
-                "domain": {"x": [0, 0.48]},
-                "name": "Gauge",
-                "hole": .3,
-                "type": "pie",
-                "direction": "clockwise",
-                "rotation":90,
-                "showlegend": False,
-                "textinfo": "label",
-                "textposition": "inside",
-                "hoverinfo": "none"}
-    layout={'xaxis': {'showticklabels': False,'autotick': False,'showgrid': False,'zeroline': False,},'yaxis': {'showticklabels': False, 'autotick': False,'showgrid': False,'zeroline': False,},
-    'shapes': [{'type': 'path',
-            'path': path,
-            'fillcolor': 'rgba(44, 160, 101, 0.5)',
-            'line': {
-                'width': 0.5},
-            'xref': 'paper',
-            'yref': 'paper'}],
-        'annotations': [{'xref': 'paper',
-            'yref': 'paper',
-            'x': 0.23,
-            'y': 0.45,
-            'text': '50',
-            'showarrow': False}]}
-    base_chart['marker']['line']['width'] = 0
+    try:
+        for ids in cur:
+            id_=int(ids[0])
+            if id_==1:
+                theta=int(id_)*-115*180 / 300 #Balloon Flite
+            if id_==2:
+                theta = int(id_) *-16* 180 / 300
+            if id_==3:
+                theta = int(id_) * 180 / 300
+            if id_==4:
+                theta = int(id_) *10 * 180 / 300 #Breakers Edge Water Coaster - New For 2018
+            if id_==5:
+                theta = int(id_) *17* 180 / 300
+        h =.24
+        k = 0.5
+        r = 0.15
+        theta = theta * math.pi / 180
+        x =  h +r *math.sin(theta)
+        y = k+ r *math.cos(theta)
+        path = 'M 0.235 0.5 L ' + str(x) + ' ' + str(y) + ' L 0.245 0.5 Z'
+        base_chart = {
+        "values": [40, 10, 10, 10, 10, 10],
+        "labels": ["-", "1", "2", "3", "4", "5"],
+        "domain": {"x": [0, .48]},
+        "marker": {
+            "colors": [
+                'rgb(200,200,200)',
+                'rgb(200,200,200)',
+                'rgb(200,200,200)',
+                'rgb(200,200,200)',
+                'rgb(200,200,200)'],
+            "line": {
+                "width": 1}},
+        "name": "Gauge",
+        "hole": .4,
+        "type": "pie",
+        "direction": "clockwise",
+        "rotation": 90,
+        "showlegend": False,
+        "hoverinfo": "none",
+        "textinfo": "label",
+        "textposition": "outside"}
+        meter_chart = {
+        "values": [50, 10,10,10,10,10],
+        "labels": [' ','Childrens Ride', 'Mild Thrill Ride', 'Moderate Thrill Ride', 'High Thrill Ride', 'Aggressive Thrill Ride'],
+        "marker": {'colors': [
+                'rgb(255, 255, 255)',
+                'rgb(444,226,202)',
+                'rgb(133,109,218)',
+                'rgb(218,130,207)',
+                'rgb(130,213,218)']},
+                    "domain": {"x": [0, 0.48]},
+                    "name": "Gauge",
+                    "hole": .3,
+                    "type": "pie",
+                    "direction": "clockwise",
+                    "rotation":90,
+                    "showlegend": False,
+                    "textinfo": "label",
+                    "textposition": "inside",
+                    "hoverinfo": "none"}
+        layout={'xaxis': {'showticklabels': False,'autotick': False,'showgrid': False,'zeroline': False,},'yaxis': {'showticklabels': False, 'autotick': False,'showgrid': False,'zeroline': False,},
+        'shapes': [{'type': 'path',
+                'path': path,
+                'fillcolor': 'rgba(143, 19, 131, 200)',
+                'line': {
+                    'width': 0.5},
+                'xref': 'paper',
+                'yref': 'paper'}],
+            'annotations': [{'xref': 'paper',
+                'yref': 'paper',
+                'x': 0.23,
+                'y': 0.45,
+                'text': '50',
+                'showarrow': False}]}
+        base_chart['marker']['line']['width'] = 0
 
-    fig = {"data": [base_chart, meter_chart],
-       "layout": layout}
-    plot(fig, filename='gauge-meter-chart.html')
-# rating_gauge('Balloon Flite')
-
+        fig = {"data": [base_chart, meter_chart],
+           "layout": layout}
+        plot(fig, filename='gauge-meter-chart.html')
+        return True
+    except:
+        print('Opps! Could not launch gauge for this command.')
+        return False
+# rating_gauge('Breakers Edge Water Coaster - New For 2018')
+#
 def process_ratings(response):
     try:
         conn = sqlite3.connect(DBNAME)
@@ -497,24 +512,25 @@ def process_rides(response):
     except:
         print ("Sorry. There was an error.")
 
-    statement="SELECT *, Ratings.RatingName, Ratings.RatingDescription FROM Rides JOIN Ratings ON Ratings.Id=Rides.RideRatingId"
-
+    statement='SELECT Rides.Id, Rides.RideName, Rides.RideDescription, Rides.HeightMin, Rides.ParkRegion, Ratings.RatingName FROM Rides JOIN Ratings ON Ratings.Id=Rides.RideRatingId'
     if response.__contains__('names'):
         statement="SELECT Id, RideName FROM Rides"
-    if response.__contains__('number'):
+    elif response.__contains__('number'):
         resp1=response.split('=')[-1]
-        statement+=' WHERE Rides.Id=' + resp1
-    if response.__contains__('RatingName'):
+        statement+=' WHERE Rides.Id=' + "'"+ resp1 + "'"
+    elif response.__contains__('ratingname'):
         resp1 = response.split("=")[-1]
-        statement+=' WHERE RideRating='+ '"'+resp1 + '"'
-    if response.__contains__('parkregion'):
+        statement+=' WHERE RideRating='+ "'"+resp1 + "'"
+    elif response.__contains__('parkregion'):
         resp1 = response.split("=")[1]
-        statement+=' WHERE ParkRegion='+ '"'+resp1 + '"'
-    if response.__contains__('heightmin='):
+        statement+=' WHERE ParkRegion='+ "'"+resp1 + "'"
+    elif response.__contains__('heightmin='):
         resp1 = response.split("=")[1]
-        statement+=' WHERE HeightMin='+ '"'+resp1 + '"'
+        statement+=' WHERE HeightMin='+ "'"+resp1 + "'"
     else:
+        print('Here are some Ride options!')
         rides_table(response)
+        statement=''
     cur.execute(statement)
     conn.commit()
     for row in cur:
@@ -557,10 +573,18 @@ def user_query():
         if command.split(' ')[0] in ['Hours', 'Rides', 'Ratings', 'Address', 'help', 'exit']:
             if data:
                 for row in data:
-                    col_width = [max(map(len, col)) for col in zip(*data)]
-                    # map(len, map(str, col))
-                    print ("  ".join((val.ljust(width) for val, width in zip(row, col_width))))
-                print ("\n")
+                    for value in row:
+                        if type(value) == float:
+                            value=round(value, 1)
+                        if len(str(value)) > columnwidth:
+                            value = [max(map(str, col)) for col in zip(*data)]
+                        print (str(value).ljust(columnwidth), end = '   ')
+                    print ("\n")
+                #
+                        #
+                #     # map(len, map(str, col))
+                #     print ("  ".join((val.ljust(width) for val, width in zip(row, col_width))))
+                # print ("\n")
         else:
             print ("Command is not recognized: " + command)
 
@@ -576,6 +600,6 @@ def user_query():
 
 
 if __name__ == '__main__':
-    init_db()
-    insert_info()
+    # init_db()
+    # insert_info()
     user_query()
