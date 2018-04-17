@@ -92,7 +92,7 @@ def get_park_info():
     park_zip=addy[0][2].split()[1]
     park_state=addy[0][2].split()[0]
 
-    hours=make_request_using_cache(baseurl+links[3])
+    hours=make_request_using_cache(baseurl+links[0])
     soup= BeautifulSoup(hours, 'html.parser')
     cal=soup.find('div', class_='list-view list-content')
     dayntime=cal.find_all('li')
@@ -135,6 +135,7 @@ def get_park_info():
         park_instance=HersheyPark(ParkName=parkname, ParkAddress=park_addy, ParkCity= park_city, ParkState=park_state, ParkZip=park_zip, Day=day, Date=dates, OpenTime=opentime, ClosedTime=closedtime)
         park_stuff.append(park_instance)
     return park_stuff
+# get_park_info()
 
 def get_soup():
     ride_url='http://www.hersheypark.com/rides/search.php'
@@ -152,7 +153,6 @@ def get_ride_names():
     return names
 
 def get_ride_info():
-    # call ride names function and return list of ride instances
     soup = get_soup()
     ride_info= soup.find('ul', id='rides-list')
     links=ride_info.find_all('li')
@@ -310,32 +310,6 @@ def insert_info():
         cur.execute(statement, insertion)
     conn.commit()
 
-def process_query(response):
-    commands=[]
-    if response=='':
-        print('Oops, nothing was entered. Please try again.')
-        user_query()
-
-    if response=='Address':
-        address=process_address(response)
-        commands.append(address)
-
-    if response.split()[0]=='Hours':
-        hours=process_hours(response)
-        for h in hours:
-            commands.append(h)
-
-    if response.split()[0]=='Rides':
-        rides=process_rides(response)
-        for r in rides:
-            commands.append(r)
-
-    if response.split()[0]=="Ratings":
-        ratings=process_ratings(response)
-        for rat in ratings:
-            commands.append(rat)
-    return commands
-
 def process_address(response):
     try:
         conn = sqlite3.connect(DBNAME)
@@ -345,7 +319,7 @@ def process_address(response):
 
     address=get_park_info()[0]
     resp= "{} is located at:\n{}\n{}, {} {}".format(address.parkname, address.parkaddress,  address.parkcity, address.parkstate, address.parkzip)
-    print(resp)
+    return(resp)
 
 def chart_hours(response):
     try:
@@ -476,6 +450,45 @@ def rating_gauge(response):
     plot(fig, filename='gauge-meter-chart.html')
 # rating_gauge('Balloon Flite')
 
+def process_ratings(response):
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print ("Sorry. There was an error.")
+
+    if response.__contains__('ride'):#######*******
+        resp1 = response.split("=")[-1]
+        rating_gauge(resp1)
+    else:
+        statement='SELECT * FROM Ratings'
+        df = pd.read_sql_query(statement, conn)
+
+        trace = go.Table(header=dict(values=df.columns, fill = dict(color='#969DF4'), align = ['left'] * 5),
+        cells=dict(values=[df.Id, df.RatingName, df.RatingDescription],
+               fill = dict(color='#F9F8FF'),
+               align = ['left'] * 5))
+        data = [trace]
+        plot(data, filename = 'ratings_table.html')
+# process_ratings('Ratings name=Balloon Flite')
+def rides_table(response):
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print ("Sorry. There was an error.")
+
+    statement='SELECT Id, RideName, RideDescription FROM Rides'
+    df = pd.read_sql_query(statement, conn)
+
+    trace = go.Table(header=dict(values=df.columns, fill = dict(color='#C492f2'), align = ['left'] * 5),
+    cells=dict(values=[df.Id, df.RideName, df.RideDescription],
+           fill = dict(color='#DDDBE0'),
+           align = ['left'] * 5))
+    data = [trace]
+    plot(data, filename = 'rides_table.html')
+# rides_table('rides')
+
 def process_rides(response):
     rides_results = []
     try:
@@ -487,24 +500,21 @@ def process_rides(response):
     statement="SELECT *, Ratings.RatingName, Ratings.RatingDescription FROM Rides JOIN Ratings ON Ratings.Id=Rides.RideRatingId"
 
     if response.__contains__('names'):
-        statement='SELECT Id, RideName FROM Rides'
+        statement="SELECT Id, RideName FROM Rides"
     if response.__contains__('number'):
-        resp1=response.split[-1]
-        statement+=' WHERE Ride.Id=' + resp1
-    if response.__contains__('RatingId'):
-        response=response.split()[1]
-        resp1 = response.split("=")[-1]
-        statement+=' WHERE RideRatingID='+ '"'+resp1 + '"'
+        resp1=response.split('=')[-1]
+        statement+=' WHERE Rides.Id=' + resp1
     if response.__contains__('RatingName'):
-        resp1 = response.split("=")[1]
-        statement+=' WHERE RideRatingId='+ '"'+resp1 + '"'
+        resp1 = response.split("=")[-1]
+        statement+=' WHERE RideRating='+ '"'+resp1 + '"'
     if response.__contains__('parkregion'):
         resp1 = response.split("=")[1]
         statement+=' WHERE ParkRegion='+ '"'+resp1 + '"'
     if response.__contains__('heightmin='):
         resp1 = response.split("=")[1]
         statement+=' WHERE HeightMin='+ '"'+resp1 + '"'
-
+    else:
+        rides_table(response)
     cur.execute(statement)
     conn.commit()
     for row in cur:
@@ -512,62 +522,60 @@ def process_rides(response):
     conn.close()
     return rides_results
 
-def process_ratings(response):
-    try:
-        conn = sqlite3.connect(DBNAME)
-        cur = conn.cursor()
-    except:
-        print ("Sorry. There was an error.")
-
-    if response.__contains__('ride'):
-        resp1 = response.split("=")[-1]
-        rating_gauge(resp1)
-    else:
-        statement='SELECT * FROM Ratings'
-        df = pd.read_sql_query(statement, conn)
-
-        trace = go.Table(header=dict(values=df.columns, fill = dict(color='#C4D5FF'), align = ['left'] * 5),
-        cells=dict(values=[df.Id, df.RatingName, df.RatingDescription],
-               fill = dict(color='#F9F8FF'),
-               align = ['left'] * 5))
-        data = [trace]
-        plot(data, filename = 'ratings_table.html')
-# process_ratings('Ratings')
-
 def load_help_text():
     with open('help.txt') as f:
         return f.read()
 
+def process_query(response):
+    commands=[]
+    if response=='':
+        print('Oops, nothing was entered. Please try again.')
+        user_query()
+
+    if response.split()[0]=='Hours':
+        hours=process_hours(response)
+        for h in hours:
+            commands.append(h)
+
+    if response.split()[0]=='Rides':
+        rides=process_rides(response)
+        for r in rides:
+            commands.append(r)
+
+    if response.split()[0]=="Ratings":
+        process_ratings(response)
+    return commands
+
 def user_query():
-    help=load_help_text()
-    command=input('What information are you looking for? ')
+    help_text=load_help_text()
+    print("Welcome to Hershey Park's Visitor Information: All Access! \nLooking to book a trip to the sweetest park in PA? Look no further. Enter help if you're stuck.")
+    command=''
     while command!='exit':
-        command=input('What other information are you looking for? ')
+        command=input('What information are you looking for? ')
         data=process_query(command)
         columnwidth = 15
-        if response.split(' ', 1)[0] in ['Hours', 'Rides', 'Ratings']:
+        if command.split(' ')[0] in ['Hours', 'Rides', 'Ratings', 'Address', 'help', 'exit']:
             if data:
                 for row in data:
-                    for value in row:
-                        if type(value) == float:
-                            value=round(value, 1)
-                        if len(str(value)) > columnwidth:
-                            value = str(value)[:columnwidth-3] + "..."
-                            print (str(value).ljust(columnwidth), end = '   ')
-                        print ("\n")
+                    col_width = [max(map(len, col)) for col in zip(*data)]
+                    # map(len, map(str, col))
+                    print ("  ".join((val.ljust(width) for val, width in zip(row, col_width))))
+                print ("\n")
         else:
-            print ("Command is not recognized: " + response)
+            print ("Command is not recognized: " + command)
 
-        if response == "help":
+        if command=='Address':
+            print(process_address(command))
+
+        if command == "help":
             print (help_text)
             continue
-
-        if response == "exit":
+        if command == "exit":
             print ("Enjoy your trip!")
             break
 
+
 if __name__ == '__main__':
-    # init_db()
-    # insert_info()
-    # print("Welcome to Hershey Park's Visitor Information: All Access! \nLooking to book a trip to the sweetest park in PA? Look no further.")
-    # user_query()
+    init_db()
+    insert_info()
+    user_query()

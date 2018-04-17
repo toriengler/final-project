@@ -12,18 +12,16 @@ Possible entries:
 Ratings: Lists all of the rating information for rides.
 Possible entires:
   *Ratings
-  Description:
+  Description:This is launch a table of all of the possible ratings, rating names, and descriptions.
   *ride=|<name>|
-  Description:
+  Description: This command will launch a gauge to show you the level of intensity of the specified ride.
 
 Rides: Lists all Hershey rides according to the specified parameters.
 Possible entries:
   * names
   Description: This command will return a list of all of the rides.
   * number=|<ride ID number>| Number will be next to the ride when you use the names command.
-  Description:??
-  * RatingId=|<number 1-5>|
-  Description: This command will return a list of rides based on the specified rating level/intensity number of the ride.
+  Description:This will return more information about the specified ride.
   * RatingName=|<rating name>|
   Description: This command will return a list of rides based on the specified rating name of this ride.
   *parkregion=|<park region name>| Founder's Way, Kissing Tower Hill, Midway America, or Pioneer Frontier
