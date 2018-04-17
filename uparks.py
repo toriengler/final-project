@@ -581,11 +581,6 @@ def user_query():
                             value = [max(map(str, col)) for col in zip(*data)]
                         print (str(value).ljust(columnwidth), end = '   ')
                     print ("\n")
-                #
-                        #
-                #     # map(len, map(str, col))
-                #     print ("  ".join((val.ljust(width) for val, width in zip(row, col_width))))
-                # print ("\n")
         else:
             print ("Command is not recognized: " + command)
 

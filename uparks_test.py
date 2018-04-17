@@ -64,7 +64,7 @@ class TestDataProcess(unittest.TestCase):
         results = process_query('Hours date=April 1st')
         self.assertEqual(results[0][0], 'Sunday')
         self.assertEqual(results[0][-1], 'ZooAmerica')
-    def test_gauge(self):
+    def test_gauge(self): #comment out
         data=rating_gauge('Balloon Flite')
         self.assertEqual(data, True)
 
