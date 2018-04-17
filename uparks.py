@@ -3,11 +3,12 @@ import requests
 import math
 import json
 import sqlite3
+import secrets
 import plotly as py
 from plotly.offline import plot
 import plotly.tools as plotly_tools
 import plotly.graph_objs as go
-py.tools.set_credentials_file(username='toriengler', api_key='L4I6cjxjCKotz48OKidA')
+py.tools.set_credentials_file(username='toriengler', api_key=secrets.API_key)
 import pandas as pd
 
 CACHE_FNAME = 'parks_info.json'
