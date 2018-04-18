@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import math
 import json
+import webbrowser
 import sqlite3
 import secrets
 import plotly as py
@@ -545,7 +546,7 @@ def load_help_text():
 
 def process_query(response):
     commands=[]
-    if response=='':
+    if response in ['', ' ']:
         print('Oops, nothing was entered. Please try again.')
         user_query()
 
@@ -559,7 +560,7 @@ def process_query(response):
         for r in rides:
             commands.append(r)
 
-    if response.split()[0]=="Ratings":
+    if response.split()[0] =='Ratings':
         process_ratings(response)
     return commands
 
@@ -570,15 +571,15 @@ def user_query():
     while command!='exit':
         command=input('What information are you looking for? ')
         data=process_query(command)
-        columnwidth = 15
-        if command.split(' ')[0] in ['Hours', 'Rides', 'Ratings', 'Address', 'help', 'exit']:
+        columnwidth = 10
+        if command.split(' ')[0] in [ 'Hours', 'Rides','Ratings', 'Address', 'url', 'help', 'exit']:
             if data:
                 for row in data:
                     for value in row:
                         if type(value) == float:
                             value=round(value, 1)
                         if len(str(value)) > columnwidth:
-                            value = [max(map(str, col)) for col in zip(*data)]
+                            value = (value[:75] + '..') if len(value) > 75 else value
                         print (str(value).ljust(columnwidth), end = '   ')
                     print ("\n")
         else:
@@ -590,12 +591,14 @@ def user_query():
         if command == "help":
             print (help_text)
             continue
+        if command=='url':
+            webbrowser.open('http://www.hersheypark.com', new=2)
+            continue
         if command == "exit":
             print ("Enjoy your trip!")
             break
 
-
 if __name__ == '__main__':
-    # init_db()
-    # insert_info()
+    init_db()
+    insert_info()
     user_query()

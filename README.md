@@ -1,11 +1,9 @@
 Tori Engler
-
 Overview:
-Hershey Park is a popular theme park in Hershey, Pennsylvania. For my project, I used this park's website, HersheyPark.com, to scrape and crawl information about the park's address, rides and their ratings, springtime dates and their operating hours.
-
-must include:
-- Data sources used, including instructions for a user to access the data sources (e.g., API keys or client secrets needed, along with a pointer to instructions on how to obtain these and instructions for how to incorporate them into your program (e.g., secrets.py file format))
-- Any other information needed to run the program (e.g., pointer to getting started info for plotly)
-- Brief description of how your code is structured, including the names of significant data processing functions (just the 2-3 most important functions--not a complete list) and class definitions. If there are large data structures (e.g., lists, dictionaries) that you create to organize your data for presentation, briefly describe them.
-- Brief user guide, including how to run the program and how to choose presentation options.
-(HELP TEXT)
+Hershey Park is a popular theme park in Hershey, Pennsylvania. For my project, I used this park's website, http://www.HersheyPark.com, to scrape and crawl information about the park's address, rides and their ratings, springtime dates and their operating hours.
+For this project's execution, I just used my Plotly API key located in my secrets.py.
+In order to run this program, users should run the uparks.py file. This will create a database called "HersheyPark.db" and a cache file "parks_info.json".
+In my code, the get_park_info() function will return instances of the HersheyPark class. This is the information that populates the "Hours" table of the database, listing the spring hours associated with the day and date in addition to the park it is associated with (ZooAmerica or Hershey Park).
+The get_ride_info() function will scrape information about each ride at the park, its region of the park, in addition to its height minimums, whether it needs parental supervision, and the intensity of the ride.
+Next, I created a database containing the options for ride ratings.
+In order to interact with the code users can type in queries about "Rides", "Ratings", "Address", and "Hours". If he or she type in "help", the terminal will load a description of all possible queries one can make to the code. Users should type in 'Rides' to see of table of all rides and descriptions and 'Rides names' for just IDs and titles of the rides, 'Ratings' to see a table of all possible intensity ratings and descriptions, 'Hours' to see all hours for both parks or 'Hours parkname=<name>'(ex:parkname=Midway America) to launch a table with that park's hours, and 'Address' to see the location of Hershey Park. 'Ratings ride=<name>' should launch a gauge chart showing the intensity of the ride. Typing 'url' should launch the Hershey Park website.
