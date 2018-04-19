@@ -599,6 +599,6 @@ def user_query():
             break
 
 if __name__ == '__main__':
-    # init_db()
-    # insert_info()
+    init_db()
+    insert_info()
     user_query()
