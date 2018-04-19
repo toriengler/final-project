@@ -65,9 +65,6 @@ class TestDataProcess(unittest.TestCase):
         self.assertEqual(results[0][0], 'Sunday')
         self.assertEqual(results[0][-1], 'ZooAmerica')
         self.assertEqual(len(results), 2)
-    # def test_gauge(self): #comment out
-    #     data=rating_gauge('Balloon Flite')
-    #     self.assertEqual(data, True)
 
 if __name__ == '__main__':
     unittest.main()
